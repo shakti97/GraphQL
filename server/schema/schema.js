@@ -7,7 +7,8 @@ const {
     GraphQLString,
     GraphQLSchema,
     GraphQLID,
-    GraphQLInt
+    GraphQLInt,
+    GraphQLList
 } = graphql;
 
 
@@ -16,26 +17,52 @@ var books = [{
         id: '1',
         name: 'The jungle Book',
         genre: 'Nature',
-        authorId : '1'
+        authorId: '1'
     },
     {
         id: '2',
         name: 'The Harry Potter Book',
         genre: 'Fantasy',
-        authorId : '2'
+        authorId: '2'
     },
     {
         id: '3',
         name: 'Inception',
         genre: 'Action in Dreams',
-        authorId : '3'
+        authorId: '3'
+    },
+    {
+        id: '4',
+        name: 'Jumanji',
+        genre: 'Action in Game',
+        authorId: '1'
+    },
+    {
+        id: '5',
+        name: 'Interstellar',
+        genre: 'Sci-fi',
+        authorId: '1'
+    }, 
+    {
+        id: '6',
+        name: 'Half girlfriend',
+        genre: 'Nature',
+        authorId: '2'
+    },
+    {
+        id: '7',
+        name: '2 States',
+        genre: 'Story',
+        authorId: '1'
     }
+
+
 ]
 
 var authors = [{
     id: '1',
     name: "MS Dhoni",
-    age: 36 
+    age: 36
 }, {
     id: '2',
     name: "Sachin Tendulkar",
@@ -58,10 +85,12 @@ const BookType = new GraphQLObjectType({
         genre: {
             type: GraphQLString
         },
-        author : {
-            type : AuthorType,
-            resolve(parent,args){
-                return _.find(authors,{id : parent.authorId})
+        author: {
+            type: AuthorType,
+            resolve(parent, args) {
+                return _.find(authors, {
+                    id: parent.authorId
+                })
             }
         }
     })
@@ -78,6 +107,12 @@ const AuthorType = new GraphQLObjectType({
         },
         age: {
             type: GraphQLInt
+        },
+        books :{
+            type : new GraphQLList(BookType),
+            resolve(parent,args){
+                return _.filter(books,{authorId : parent.id})
+            }
         }
     })
 })
@@ -98,16 +133,16 @@ const RootQuery = new GraphQLObjectType({
                 });
             }
         },
-        author :{
-            type : AuthorType,
-            args :{
-                id : {
-                    type :GraphQLString
+        author: {
+            type: AuthorType,
+            args: {
+                id: {
+                    type: GraphQLString
                 }
             },
-            resolve(parent,args){
-                return _.find(authors,{
-                    id : args.id
+            resolve(parent, args) {
+                return _.find(authors, {
+                    id: args.id
                 });
             }
         }
