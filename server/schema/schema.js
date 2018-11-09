@@ -1,5 +1,7 @@
 const graphql = require('graphql');
 const _ = require('lodash');
+const Book = require('../models/bookschema.js');
+const Author = require('../models/authorSchema.js');
 
 //Diff between GraphQLID and GraphQLString is String takes always the string where the ID takes number, string etc
 const {
@@ -13,65 +15,66 @@ const {
 
 
 //FakeData
-var books = [{
-        id: '1',
-        name: 'The jungle Book',
-        genre: 'Nature',
-        authorId: '1'
-    },
-    {
-        id: '2',
-        name: 'The Harry Potter Book',
-        genre: 'Fantasy',
-        authorId: '2'
-    },
-    {
-        id: '3',
-        name: 'Inception',
-        genre: 'Action in Dreams',
-        authorId: '3'
-    },
-    {
-        id: '4',
-        name: 'Jumanji',
-        genre: 'Action in Game',
-        authorId: '1'
-    },
-    {
-        id: '5',
-        name: 'Interstellar',
-        genre: 'Sci-fi',
-        authorId: '1'
-    }, 
-    {
-        id: '6',
-        name: 'Half girlfriend',
-        genre: 'Nature',
-        authorId: '2'
-    },
-    {
-        id: '7',
-        name: '2 States',
-        genre: 'Story',
-        authorId: '1'
-    }
+// var books = [{
+//         id: '1',
+//         name: 'The jungle Book',
+//         genre: 'Nature',
+//         authorId: '1'
+//     },
+//     {
+//         id: '2',
+//         name: 'The Harry Potter Book',
+//         genre: 'Fantasy',
+//         authorId: '2'
+//     },
+//     {
+//         id: '3',
+//         name: 'Inception',
+//         genre: 'Action in Dreams',
+//         authorId: '3'
+//     },
+//     {
+//         id: '4',
+//         name: 'Jumanji',
+//         genre: 'Action in Game',
+//         authorId: '1'
+//     },
+//     {
+//         id: '5',
+//         name: 'Interstellar',
+//         genre: 'Sci-fi',
+//         authorId: '1'
+//     }, 
+//     {
+//         id: '6',
+//         name: 'Half girlfriend',
+//         genre: 'Nature',
+//         authorId: '2'
+//     },
+//     {
+//         id: '7',
+//         name: '2 States',
+//         genre: 'Story',
+//         authorId: '1'
+//     }
 
 
-]
+// ]
 
-var authors = [{
-    id: '1',
-    name: "MS Dhoni",
-    age: 36
-}, {
-    id: '2',
-    name: "Sachin Tendulkar",
-    age: 42
-}, {
-    id: '3',
-    name: "Viraat Kohli",
-    age: 29
-}]
+// var authors = [{
+//     id: '1',
+//     name: "MS Dhoni",
+//     age: 36
+// }, {
+//     id: '2',
+//     name: "Sachin Tendulkar",
+//     age: 42
+// }, {
+//     id: '3',
+//     name: "Viraat Kohli",
+//     age: 29
+// }]
+
 //fields contain the async function which return a object
 const BookType = new GraphQLObjectType({
     name: 'Book',
@@ -88,9 +91,7 @@ const BookType = new GraphQLObjectType({
         author: {
             type: AuthorType,
             resolve(parent, args) {
-                return _.find(authors, {
-                    id: parent.authorId
-                })
+                return Author.findById(parent.authorId);
             }
         }
     })
@@ -108,10 +109,10 @@ const AuthorType = new GraphQLObjectType({
         age: {
             type: GraphQLInt
         },
-        books :{
-            type : new GraphQLList(BookType),
-            resolve(parent,args){
-                return _.filter(books,{authorId : parent.id})
+        books: {
+            type: new GraphQLList(BookType),
+            resolve(parent, args) {
+                return Book.find({authorId : parent.id});
             }
         }
     })
@@ -127,10 +128,11 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve(parent, args) {
-                //write code to extract the data from the db
-                return _.find(books, {
-                    id: args.id
-                });
+                return Book.findById(args.id)
+            //     //write code to extract the data from the db
+            //     return _.find(books, {
+            //         id: args.id
+            //     });
             }
         },
         author: {
@@ -141,26 +143,64 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve(parent, args) {
-                return _.find(authors, {
-                    id: args.id
-                });
+                return Author.findById(args.id);
+            //     return _.find(authors, {
+            //         id: args.id
+            //     });
             }
         },
-        books :{
-            type : new GraphQLList(BookType),
+        books: {
+            type: new GraphQLList(BookType),
             resolve(parent,args){
-                return books
+                return Book.find({});
             }
         },
-        authors : {
-            type : new GraphQLList(AuthorType),
+        authors: {
+            type: new GraphQLList(AuthorType),
             resolve(parent,args){
-                return authors
+                return Author.find({});
+            }
+        }
+    }
+})
+
+const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addAuthor: {
+            type: AuthorType,
+            args: {
+                name: {type :GraphQLString},
+                age: {type : GraphQLInt}
+            },
+            resolve(parent, args) {
+                let author = new Author({
+                    name: args.name,
+                    age: args.age
+                })
+                return author.save();
+            }
+        },
+        addBook :{
+            type :BookType,
+            args:{
+                name : {type : GraphQLString},
+                genre : {type :GraphQLString},
+                authorId:{type :GraphQLID}
+            },
+            resolve(parent,args){
+                let book=new Book({
+                    name :args.name,
+                    genre : args.genre,
+                    authorId :args.authorId
+                })
+                return book.save();
             }
         }
     }
 })
 
 module.exports = new GraphQLSchema({
-    query: RootQuery
+    query: RootQuery,
+    mutation :Mutation
 })
