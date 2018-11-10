@@ -1,0 +1,12 @@
+body {
+  background: skyblue;
+  font-family : " Verdana sans-serif ";
+}
+.main-heading{
+  text-align: center;
+  
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
