@@ -3,6 +3,9 @@ const graphqlHTTP=require('express-graphql');
 const app=express();
 const schema=require('./schema/schema.js');
 const mongoose=require('mongoose');
+const cors=require('cors');
+
+app.use(cors());
 const dotenv=require('dotenv');
 dotenv.config();
 var url= process.env.MONGOLAB_URI;
